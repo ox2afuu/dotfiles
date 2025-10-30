@@ -14,9 +14,11 @@ ZSH_DISABLE_COMPFIX="true"
 zle -N menu-search 2>/dev/null
 zle -N recent-paths 2>/dev/null
 
-# Ghostty color palette setup
-# Use themes as set by ghostty | export the palette once per host
+# Ghostty integration
+# Export COLORFGBG for terminal compatibility
+# Note: ghostty +list-colors exports X11 color names, not terminal ANSI colors
 [[ -z $COLORFGBG ]] && {
     export COLORFGBG='15;0'
-    ghostty +list-colors | sed -n 's/\([^ ]*\) \(#\)/\1 \2/p' > ~/.cache/ghostty-palette
+    # Optional: export X11 color names (useful for some tools)
+    # ghostty +list-colors | sed -n 's/\([^ ]*\) \(#\)/\1 \2/p' > ~/.cache/ghostty-palette
 }
