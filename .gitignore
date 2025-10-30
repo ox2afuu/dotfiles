@@ -62,3 +62,6 @@
 # Local machine-specific configs
 *.local
 .gitconfig.local
+
+# Zsh local overrides (secrets, work VPN, machine-specific)
+**/omz-custom/local.zsh

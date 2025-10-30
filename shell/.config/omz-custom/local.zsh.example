@@ -1,0 +1,28 @@
+# local.zsh.example - Template for local machine-specific overrides
+# Copy this file to 'local.zsh' (which is gitignored) and customize as needed
+
+# This file is for machine-specific configuration that should NOT be tracked in git:
+# - API keys, tokens, secrets
+# - Work VPN configurations
+# - Machine-specific paths or settings
+# - Private aliases or functions
+# - Anything that differs between your machines
+
+# Examples:
+
+# Work VPN
+# alias vpn-connect='sudo openconnect --protocol=gp vpn.company.com'
+
+# Private API keys
+# export ANTHROPIC_API_KEY="your-key-here"
+# export OPENAI_API_KEY="your-key-here"
+
+# Machine-specific PATH additions
+# export PATH="/path/to/machine-specific/bin:$PATH"
+
+# Private git identity for work projects
+# export GIT_AUTHOR_EMAIL="work@company.com"
+# export GIT_COMMITTER_EMAIL="work@company.com"
+
+# Private aliases
+# alias ssh-work='ssh user@work-server.internal'
