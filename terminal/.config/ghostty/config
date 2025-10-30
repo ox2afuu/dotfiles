@@ -1,0 +1,3 @@
+theme = Ghostty Default Style Dark
+keybind = shift+enter=text:\x1b\r
+shell-integration = zsh

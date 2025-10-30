@@ -1,0 +1,10 @@
+# Copy this to ~/.gitconfig.local and fill in your personal details
+# Then source it from your main .gitconfig with:
+# [include]
+#     path = ~/.gitconfig.local
+
+[user]
+    name = YOUR_NAME
+    email = YOUR_EMAIL
+
+# Optional: Add any machine-specific git settings here

@@ -1,0 +1,64 @@
+# OS files
+.DS_Store
+*.swp
+*.swo
+*~
+.localized
+
+# Sensitive data
+*_history
+*.secret
+*.key
+*token*
+*.pem
+*.crt
+
+# Cache and temporary files
+.cache/
+*.tmp
+*.temp
+*.log
+*.audit
+
+# Emacs specific
+.emacs.d/eln-cache/
+.emacs.d/**/*.eln.tmp
+.emacs.d/auto-save-list/
+.emacs.d/elpa/
+.emacs.d/transient/
+.emacs.d/recentf
+.emacs.d/projectile-bookmarks.eld
+
+# Neovim/Vim
+*.un~
+.netrwhist
+
+# Terminal sockets and runtime
+**/sockets/
+*.sock
+*.socket
+*.lock
+
+# Podman/container runtime files
+**/containers/podman/machine/**/*.ign
+**/containers/podman/machine/**/*.json
+**/containers/podman/machine/**/*.lock
+**/containers/podman-connections.json.lock
+**/containers/podman-connections.json
+
+# Application state files
+**/octave-gui.ini
+**/octave-doc-bookmarks.xbel
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# IDE/editor specific
+.vscode/
+.idea/
+
+# Local machine-specific configs
+*.local
+.gitconfig.local

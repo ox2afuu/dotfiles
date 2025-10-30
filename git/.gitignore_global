@@ -1,0 +1,37 @@
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Desktop.ini
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.*.sw[a-z]
+*.kate-swp
+
+# Development tools
+.claudecode/
+.cursor/
+.aider*
+CLAUDE.md
+
+# Temporary files
+*.log
+*.tmp
+.cache/
+__pycache__/
+*.pyc
+
+# Environment files (if you prefer global ignore)
+.env
+.env.local
+.envrc
+.python-version
+poetry.toml
