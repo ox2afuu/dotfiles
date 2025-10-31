@@ -39,13 +39,12 @@ jobs:
 
           # Enable specific validators
           VALIDATE_BASH: true
-          VALIDATE_SHELL_SHFMT: false  # We use shellcheck, not shfmt
           VALIDATE_YAML: true
           VALIDATE_MARKDOWN: true
           VALIDATE_JSON: true
           VALIDATE_PYTHON_BLACK: true
-          VALIDATE_PYTHON_FLAKE8: false
-          VALIDATE_PYTHON_PYLINT: false
+          LINTER_RULES_PATH: .github/linters
+          FILTER_REGEX_EXCLUDE: .*docs/book/.*|.*node_modules/.*|.*\.git/.*
 
           # Linter configuration files location
           LINTER_RULES_PATH: .github/linters
