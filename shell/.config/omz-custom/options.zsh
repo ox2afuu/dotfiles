@@ -17,7 +17,7 @@ zle -N recent-paths 2>/dev/null
 # Ghostty integration
 # Export COLORFGBG for terminal compatibility
 # Note: ghostty +list-colors exports X11 color names, not terminal ANSI colors
-[[ -z $COLORFGBG ]] && {
+[[ -z ${COLORFGBG} ]] && {
     export COLORFGBG='15;0'
     # Optional: export X11 color names (useful for some tools)
     # ghostty +list-colors | sed -n 's/\([^ ]*\) \(#\)/\1 \2/p' > ~/.cache/ghostty-palette

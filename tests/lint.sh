@@ -60,7 +60,7 @@ else
     else
         echo "Found ${#SHELL_SCRIPTS[@]} shell scripts"
 
-        for script in "${SHELL_SCRIPTS[@]}"; then
+        for script in "${SHELL_SCRIPTS[@]}"; do
             if shellcheck "${script}"; then
                 print_status "ok" "shellcheck ${script}"
             else

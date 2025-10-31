@@ -1,0 +1,48 @@
+# Containerfile for Podman-based dotfiles testing
+# Uses Alpine for minimal footprint
+# Rootless-friendly with non-root testuser
+
+FROM docker.io/alpine:latest
+
+LABEL org.opencontainers.image.title="Dotfiles Test Environment"
+LABEL org.opencontainers.image.description="Rootless Podman container for testing dotfiles with GNU Stow"
+LABEL org.opencontainers.image.source="https://github.com/ox2afuu/dotfiles"
+
+# Install dependencies needed for dotfiles testing
+RUN apk add --no-cache \
+    git \
+    stow \
+    zsh \
+    bash \
+    starship \
+    neovim \
+    curl \
+    wget \
+    shellcheck \
+    shadow \
+    sudo \
+    python3 \
+    py3-pip \
+    py3-yaml \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root test user (rootless-friendly)
+# UID 1000 matches common user IDs
+RUN addgroup -g 1000 testuser && \
+    adduser -D -u 1000 -G testuser -s /bin/zsh testuser && \
+    echo "testuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/testuser && \
+    chmod 0440 /etc/sudoers.d/testuser
+
+# Set up home directory structure
+RUN mkdir -p /home/testuser/dotfiles && \
+    chown -R testuser:testuser /home/testuser
+
+# Switch to non-root user
+USER testuser
+WORKDIR /home/testuser/dotfiles
+
+# Set up zsh as default shell
+ENV SHELL=/bin/zsh
+
+# Default command
+CMD ["/bin/zsh"]

@@ -45,3 +45,4 @@
 - [Testing](./testing.md)
 - [Contributing](./contributing.md)
 - [Branch Strategy](./branch-strategy.md)
+- [GitHub Repository Setup](./github-setup.md)

@@ -1,0 +1,31 @@
+{
+  "name": "Dotfiles Test Environment (Podman Rootless)",
+  "build": {
+    "dockerfile": "Containerfile",
+    "context": "."
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/home/testuser/dotfiles,type=bind,consistency=cached"
+  ],
+  "workspaceFolder": "/home/testuser/dotfiles",
+  "remoteUser": "testuser",
+  "postCreateCommand": "git config --global --add safe.directory /home/testuser/dotfiles",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        }
+      }
+    }
+  },
+  "containerEnv": {
+    "CONTAINER": "podman",
+    "DOTFILES_TEST": "true",
+    "HOME": "/home/testuser"
+  },
+  "features": {}
+}

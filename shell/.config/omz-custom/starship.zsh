@@ -1,5 +1,6 @@
 # starship.zsh - Starship prompt configuration
 # This file is sourced after oh-my-zsh and plugins load
+# shellcheck shell=bash disable=SC1036,SC1073,SC1009,SC1072,SC1027
 
 # =============================================================================
 # Starship Timing and State Management

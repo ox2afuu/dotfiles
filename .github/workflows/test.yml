@@ -87,10 +87,41 @@ jobs:
       - name: Run markdownlint
         run: markdownlint '**/*.md' --ignore node_modules --ignore docs/book
 
+  container-tests:
+    name: Container Bootstrap Test
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+
+      - name: Initialize Podman
+        run: |
+          podman machine init || true
+          podman machine start || true
+          podman info
+
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+
+      - name: Run bootstrap container test
+        run: |
+          # Make test script executable
+          chmod +x ./scripts/test-in-container.sh
+
+          # Run bootstrap test
+          ./scripts/test-in-container.sh bootstrap
+
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [lint, snippet-tests, integration-tests, markdown-lint]
+    needs: [lint, snippet-tests, integration-tests, markdown-lint, container-tests]
     if: always()
 
     steps:
@@ -100,7 +131,8 @@ jobs:
           if [ "${{ needs.lint.result }}" != "success" ] || \
              [ "${{ needs.snippet-tests.result }}" != "success" ] || \
              [ "${{ needs.integration-tests.result }}" != "success" ] || \
-             [ "${{ needs.markdown-lint.result }}" != "success" ]; then
+             [ "${{ needs.markdown-lint.result }}" != "success" ] || \
+             [ "${{ needs.container-tests.result }}" != "success" ]; then
             echo "Some tests failed"
             exit 1
           fi
