@@ -1,0 +1,41 @@
+[book]
+authors = ["ox2afuu"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Dotfiles Documentation"
+description = "Personal dotfiles configuration managed with GNU Stow"
+
+[build]
+build-dir = "book"
+create-missing = true
+
+# Link checking is performed as a separate CI step
+# See .github/workflows/docs.yml for link validation
+
+[output.html]
+default-theme = "rust"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/ox2a-fuu/dotfiles"
+edit-url-template = "https://github.com/ox2a-fuu/dotfiles/edit/main/docs/{path}"
+site-url = "/dotfiles/"
+cname = ""
+
+[output.html.search]
+enable = true
+limit-results = 30
+teaser-word-count = 30
+use-boolean-and = true
+boost-title = 2
+boost-hierarchy = 1
+boost-paragraph = 1
+expand = true
+
+[output.html.playground]
+editable = false
+copyable = true
+line-numbers = true
+
+[output.html.fold]
+enable = true
+level = 0

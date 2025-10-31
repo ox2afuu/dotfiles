@@ -1,0 +1,107 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - test/docs
+      - dev
+  pull_request:
+    branches:
+      - main
+      - test/docs
+      - dev
+
+jobs:
+  lint:
+    name: Lint Shell Scripts and Configs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck python3 python3-yaml
+
+          # Install shfmt
+          wget -qO- https://github.com/mvdan/sh/releases/latest/download/shfmt_v3.8.0_linux_amd64 > /tmp/shfmt
+          chmod +x /tmp/shfmt
+          sudo mv /tmp/shfmt /usr/local/bin/
+
+      - name: Run lint tests
+        run: ./tests/lint.sh
+
+  snippet-tests:
+    name: Test Documentation Snippets
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run snippet tests
+        run: ./tests/test-snippets.sh
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y stow
+
+      - name: Run integration tests
+        run: ./tests/integration-tests.sh
+
+  markdown-lint:
+    name: Markdown Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: Run markdownlint
+        run: markdownlint '**/*.md' --ignore node_modules --ignore docs/book
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [lint, snippet-tests, integration-tests, markdown-lint]
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          echo "All tests completed"
+          if [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.snippet-tests.result }}" != "success" ] || \
+             [ "${{ needs.integration-tests.result }}" != "success" ] || \
+             [ "${{ needs.markdown-lint.result }}" != "success" ]; then
+            echo "Some tests failed"
+            exit 1
+          fi
+          echo "All tests passed successfully!"

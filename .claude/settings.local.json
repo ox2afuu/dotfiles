@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//opt/homebrew/share/**)",
+      "Bash(git checkout:*)",
+      "Bash(starship config:*)",
+      "Read(//Users/ox2a.fuu/.config/**)",
+      "Bash(mdbook-linkcheck:*)",
+      "Bash(mdbook build:*)",
+      "Bash(for pkg in shell git editors terminal tools desktop dev)",
+      "Bash(do echo \"=== $pkg ===\")",
+      "Bash(find:*)",
+      "Bash(done)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

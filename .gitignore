@@ -65,3 +65,14 @@
 
 # Zsh local overrides (secrets, work VPN, machine-specific)
 **/omz-custom/local.zsh
+
+# Documentation build artifacts
+docs/book/
+docs/**/*.html
+docs/**/*.js
+docs/**/*.css
+**/target/
+
+# Test artifacts
+tests/**/*.tmp
+tests/**/temp/
