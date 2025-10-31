@@ -317,19 +317,30 @@ The README displays real-time status for each environment:
 
 ## Troubleshooting
 
-### "remote: error: GH006: Protected branch update failed"
+### Protected Branch Update Failed
+
+Error: `remote: error: GH006: Protected branch update failed`
+
 - You tried to push directly to a protected branch
 - Solution: Create a PR instead
 
-### "Commit signature verification failed"
+### Commit Signature Verification Failed
+
+Error: `Commit signature verification failed`
+
 - Commits must be GPG signed
 - Solution: Follow GPG setup in contributing guide
 
-### "Required status check not found"
+### Required Status Check Not Found
+
+Error: `Required status check not found`
 - A required CI check hasn't run yet
 - Solution: Wait for all checks to complete or trigger manually
 
-### "Can't merge - branch is out of date"
+### Branch Out of Date
+
+Error: `Can't merge - branch is out of date`
+
 - Your branch is behind the base branch
 - Solution: `git pull origin <base-branch>` and resolve conflicts
 

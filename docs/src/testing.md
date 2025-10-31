@@ -15,6 +15,7 @@ This document describes the testing strategy for the dotfiles repository.
 **Tool**: shellcheck, shfmt
 
 **What it tests**:
+
 - Syntax errors in shell scripts
 - Common scripting pitfalls
 - Code style consistency

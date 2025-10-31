@@ -23,3 +23,9 @@ conflictStyle = zdiff3
 # Local machine-specific config (gitignored)
 [include]
     path = ~/.gitconfig.local
+[commit]
+	gpgsign = true
+[user]
+	signingkey = 30A161E8DA987337
+[gpg]
+	program = gpg
