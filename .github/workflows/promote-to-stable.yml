@@ -1,0 +1,128 @@
+name: Auto-Promote to Stable
+
+on:
+  workflow_run:
+    workflows: ["Tests", "Super-Linter", "CodeQL Security Scanning"]
+    branches: [nightly]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  check-and-promote:
+    name: Create Promotion PR
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: nightly
+
+      - name: Check if all workflows passed
+        id: check-status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the SHA of the latest commit on nightly
+          COMMIT_SHA=$(git rev-parse nightly)
+          echo "Checking status for commit: $COMMIT_SHA"
+
+          # Check status of all required checks
+          STATUS=$(gh api repos/${{ github.repository }}/commits/$COMMIT_SHA/status --jq '.state')
+          echo "Status: $STATUS"
+
+          # Check check-runs (for Actions workflows)
+          CHECKS=$(gh api repos/${{ github.repository }}/commits/$COMMIT_SHA/check-runs --jq '.check_runs[] | select(.conclusion != "success") | .name')
+
+          if [ "$STATUS" == "success" ] && [ -z "$CHECKS" ]; then
+            echo "all_passed=true" >> $GITHUB_OUTPUT
+            echo "✅ All checks passed on nightly"
+          else
+            echo "all_passed=false" >> $GITHUB_OUTPUT
+            echo "❌ Some checks failed or are pending"
+            echo "Failed checks: $CHECKS"
+          fi
+
+      - name: Check for existing PR
+        id: check-pr
+        if: steps.check-status.outputs.all_passed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if there's already an open PR from nightly to stable
+          EXISTING_PR=$(gh pr list --base stable --head nightly --state open --json number --jq '.[0].number')
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "existing_pr=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "📋 Existing PR found: #$EXISTING_PR"
+          else
+            echo "existing_pr=" >> $GITHUB_OUTPUT
+            echo "🆕 No existing PR found"
+          fi
+
+      - name: Create promotion PR
+        if: steps.check-status.outputs.all_passed == 'true' && steps.check-pr.outputs.existing_pr == ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get commit messages since last stable merge
+          COMMITS=$(git log stable..nightly --pretty=format:"- %s (%h)" | head -20)
+
+          # Create PR body
+          PR_BODY="## 🚀 Auto-Promotion from Nightly to Stable
+
+          This PR was automatically created because all CI/CD checks passed on the \`nightly\` branch.
+
+          ### ✅ Passing Checks
+          - Linting tests
+          - Integration tests
+          - Container tests
+          - Super-Linter
+          - CodeQL security scanning
+
+          ### 📝 Recent Changes
+
+          $COMMITS
+
+          ### 🔍 Review Checklist
+          - [ ] All tests passing
+          - [ ] No breaking changes
+          - [ ] Documentation updated
+          - [ ] Ready for production
+
+          **Branch**: \`nightly\` → \`stable\`
+
+          🤖 Generated automatically by GitHub Actions"
+
+          # Create the PR
+          gh pr create \
+            --base stable \
+            --head nightly \
+            --title "🚀 Promote nightly to stable ($(date +%Y-%m-%d))" \
+            --body "$PR_BODY" \
+            --label "auto-promotion,stable,release" \
+            --assignee "${{ github.repository_owner }}"
+
+          echo "✅ Promotion PR created successfully"
+
+      - name: Update existing PR
+        if: steps.check-status.outputs.all_passed == 'true' && steps.check-pr.outputs.existing_pr != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ steps.check-pr.outputs.existing_pr }}
+          echo "📝 Updating existing PR #$PR_NUMBER"
+
+          gh pr comment $PR_NUMBER --body "✅ All CI/CD checks passed again on nightly as of $(date +%Y-%m-%d\ %H:%M:%S\ UTC)"
+
+      - name: Notify on failure
+        if: steps.check-status.outputs.all_passed != 'true'
+        run: |
+          echo "⏸️ Not creating promotion PR because some checks failed or are still pending"
+          echo "This is expected behavior - the PR will be created when all checks pass"

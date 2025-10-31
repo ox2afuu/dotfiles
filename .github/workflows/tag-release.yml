@@ -1,0 +1,190 @@
+name: Tag & Release
+
+on:
+  push:
+    branches:
+      - stable
+      - nightly
+      - dev
+
+permissions:
+  contents: write
+
+jobs:
+  tag-environment:
+    name: Update Environment Tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine tag name
+        id: tag-info
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+          case "$BRANCH" in
+            stable)
+              echo "tag=stable" >> $GITHUB_OUTPUT
+              echo "create_release=true" >> $GITHUB_OUTPUT
+              ;;
+            nightly)
+              echo "tag=nightly" >> $GITHUB_OUTPUT
+              echo "create_release=false" >> $GITHUB_OUTPUT
+              ;;
+            dev)
+              echo "tag=dev" >> $GITHUB_OUTPUT
+              echo "create_release=false" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Update or create tag
+        env:
+          TAG: ${{ steps.tag-info.outputs.tag }}
+        run: |
+          # Delete existing tag if it exists (locally and remotely)
+          git tag -d "$TAG" 2>/dev/null || true
+          git push origin ":refs/tags/$TAG" 2>/dev/null || true
+
+          # Create new tag
+          git tag -a "$TAG" -m "Update $TAG environment tag to $(git rev-parse --short HEAD)"
+
+          # Push tag
+          git push origin "$TAG"
+
+          echo "✅ Updated tag: $TAG"
+
+  create-version-tag:
+    name: Create Version Tag
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/stable'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get next version
+        id: version
+        run: |
+          # Get the latest version tag (format: vX.Y.Z)
+          LATEST_TAG=$(git tag -l "v*.*.*" | sort -V | tail -n1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            # No version tags exist yet
+            NEXT_VERSION="v1.0.0"
+          else
+            # Extract version components
+            VERSION="${LATEST_TAG#v}"
+            IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+            MAJOR="${VERSION_PARTS[0]}"
+            MINOR="${VERSION_PARTS[1]}"
+            PATCH="${VERSION_PARTS[2]}"
+
+            # Check commit messages to determine version bump
+            COMMITS=$(git log "$LATEST_TAG"..HEAD --pretty=format:"%s")
+
+            if echo "$COMMITS" | grep -qE "^(feat|feature)(\(.+\))?!:|^BREAKING CHANGE:"; then
+              # Breaking change - bump major
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+            elif echo "$COMMITS" | grep -qE "^(feat|feature)(\(.+\))?:"; then
+              # New feature - bump minor
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              # Bug fix or other - bump patch
+              PATCH=$((PATCH + 1))
+            fi
+
+            NEXT_VERSION="v$MAJOR.$MINOR.$PATCH"
+          fi
+
+          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Next version: $NEXT_VERSION"
+
+      - name: Create version tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if tag already exists
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "⏭️ Tag $VERSION already exists, skipping"
+            exit 0
+          fi
+
+          # Generate release notes
+          PREVIOUS_TAG=$(git tag -l "v*.*.*" | sort -V | tail -n1)
+          if [ -n "$PREVIOUS_TAG" ]; then
+            COMMITS=$(git log "$PREVIOUS_TAG"..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges | head -20)
+          fi
+
+          RELEASE_NOTES="## Changes
+
+$COMMITS
+
+## Installation
+
+\`\`\`bash
+git clone --branch $VERSION https://github.com/${{ github.repository }}.git
+cd dotfiles
+stow */
+\`\`\`
+
+## Full Changelog
+
+\`\`\`bash
+git log ${PREVIOUS_TAG}..${VERSION} --oneline
+\`\`\`
+
+---
+
+🤖 Generated automatically by GitHub Actions"
+
+          # Create tag and release
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
+
+          # Create GitHub release
+          gh release create "$VERSION" \
+            --title "Release $VERSION" \
+            --notes "$RELEASE_NOTES" \
+            --latest
+
+          echo "✅ Created version tag and release: $VERSION"
+
+  update-latest:
+    name: Update Latest Release
+    runs-on: ubuntu-latest
+    needs: create-version-tag
+    if: github.ref == 'refs/heads/stable'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update latest tag
+        run: |
+          # Get the latest version tag
+          LATEST_VERSION=$(git tag -l "v*.*.*" | sort -V | tail -n1)
+
+          if [ -n "$LATEST_VERSION" ]; then
+            # Update 'latest' tag to point to the latest version
+            git tag -f latest "$LATEST_VERSION"
+            git push -f origin latest
+            echo "✅ Updated 'latest' tag to $LATEST_VERSION"
+          fi

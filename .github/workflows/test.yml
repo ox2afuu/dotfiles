@@ -3,13 +3,13 @@ name: Tests
 on:
   push:
     branches:
-      - main
-      - test/docs
+      - stable
+      - nightly
       - dev
   pull_request:
     branches:
-      - main
-      - test/docs
+      - stable
+      - nightly
       - dev
 
 jobs:

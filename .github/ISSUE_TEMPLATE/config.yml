@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://ox2a-fuu.github.io/dotfiles/
+    about: Check the documentation for guides and troubleshooting
+  - name: 💬 Discussions
+    url: https://github.com/ox2a-fuu/dotfiles/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 🔒 Security Issue
+    url: https://github.com/ox2a-fuu/dotfiles/security/advisories/new
+    about: Report a security vulnerability privately

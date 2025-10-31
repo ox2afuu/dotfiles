@@ -1,0 +1,98 @@
+# Pre-commit hooks configuration
+# Install: pip install pre-commit
+# Setup: pre-commit install
+# Run manually: pre-commit run --all-files
+
+default_language_version:
+  python: python3
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]  # Allow custom tags in YAML
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: detect-private-key
+
+  # Shell script linting
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning, --shell=bash]
+        types: [shell]
+
+  # Spell checking with typos
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.28.3
+    hooks:
+      - id: typos
+        args: [--force-exclude]
+        exclude: |
+          (?x)^(
+            .*\.lock|
+            .*package-lock\.json|
+            docs/book/.*
+          )$
+
+  # Additional spell checking with codespell
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=crate,nd,fo,te,bu
+          - --skip="*.lock,*.min.js,*.min.css,docs/book/*"
+          - --quiet-level=2
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [--strict, -c=.github/linters/.yaml-lint.yml]
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+      - id: markdownlint
+        args: [--config, .github/linters/.markdown-lint.yml]
+        exclude: docs/book/.*
+
+  # Python formatting (for test scripts)
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3
+        types: [python]
+
+  # TOML validation
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-toml
+
+  # Custom local hooks
+  - repo: local
+    hooks:
+      - id: run-lint-tests
+        name: Run dotfiles lint tests
+        entry: ./tests/lint.sh
+        language: system
+        pass_filenames: false
+        stages: [commit]
+        files: \.(sh|zsh|bash)$

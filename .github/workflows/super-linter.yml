@@ -1,0 +1,58 @@
+name: Super-Linter
+
+on:
+  push:
+    branches:
+      - stable
+      - nightly
+      - dev
+  pull_request:
+    branches:
+      - stable
+      - nightly
+      - dev
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  super-linter:
+    name: Lint Code Base
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better linting
+
+      - name: Run Super-Linter
+        uses: super-linter/super-linter@v7
+        env:
+          # GitHub configuration
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: stable
+
+          # Validate only changed files (faster)
+          VALIDATE_ALL_CODEBASE: false
+
+          # Enable specific validators
+          VALIDATE_BASH: true
+          VALIDATE_SHELL_SHFMT: false  # We use shellcheck, not shfmt
+          VALIDATE_YAML: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_JSON: true
+          VALIDATE_PYTHON_BLACK: true
+          VALIDATE_PYTHON_FLAKE8: false
+          VALIDATE_PYTHON_PYLINT: false
+
+          # Linter configuration files location
+          LINTER_RULES_PATH: .github/linters
+
+          # Filter patterns
+          FILTER_REGEX_EXCLUDE: .*docs/book/.*|.*node_modules/.*|.*\.git/.*
+
+          # Output configuration
+          LOG_LEVEL: WARN
+          SUPPRESS_POSSUM: true

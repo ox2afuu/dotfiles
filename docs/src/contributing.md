@@ -21,11 +21,27 @@ cd ~/dotfiles-dev
 git remote add upstream https://github.com/ox2a-fuu/dotfiles.git
 
 # Install mdBook for docs
-cargo install mdbook mdbook-linkcheck
+cargo install mdbook mdbook-linkcheck2
 
 # Install testing tools
 brew install shellcheck shfmt stow
+
+# Install pre-commit hooks
+pip install pre-commit
+pre-commit install
+
+# (Optional) Run pre-commit on all files to verify setup
+pre-commit run --all-files
 ```
+
+**What pre-commit hooks do**:
+- Run shellcheck on shell scripts
+- Check for spelling errors with typos and codespell
+- Validate YAML, Markdown, and TOML files
+- Run project lint tests automatically before each commit
+- Prevent common mistakes from reaching CI/CD
+
+This catches errors locally before they reach GitHub Actions, saving time and CI/CD minutes.
 
 ## Making Changes
 
@@ -94,6 +110,81 @@ git commit -m "feat(shell): add new zsh aliases
 - `refactor`: Code restructuring
 - `test`: Adding tests
 - `chore`: Maintenance tasks
+
+#### GPG Commit Signing (Required)
+
+All commits to this repository **must** be signed with a GPG key. This is enforced by branch protection rules.
+
+**First-time setup**:
+
+```bash
+# 1. Check if you have a GPG key
+gpg --list-secret-keys --keyid-format=long
+
+# 2. If no keys exist, generate one
+gpg --full-generate-key
+# Choose: RSA and RSA, 4096 bits, no expiration (or your preference)
+# Enter your name and email (must match your GitHub email)
+
+# 3. Get your GPG key ID
+gpg --list-secret-keys --keyid-format=long
+# Look for: sec   rsa4096/YOUR_KEY_ID 2024-01-01
+# YOUR_KEY_ID is what you need (e.g., 3AA5C34371567BD2)
+
+# 4. Configure Git to use GPG signing
+git config --global user.signingkey YOUR_KEY_ID
+git config --global commit.gpgsign true
+git config --global gpg.program gpg
+
+# 5. Export your public key for GitHub
+gpg --armor --export YOUR_KEY_ID
+# Copy the output (including BEGIN and END lines)
+```
+
+**Add GPG key to GitHub**:
+
+1. Go to [GitHub GPG Keys Settings](https://github.com/settings/keys)
+2. Click "New GPG key"
+3. Paste your public key
+4. Click "Add GPG key"
+
+**Troubleshooting GPG**:
+
+```bash
+# If commits fail with "gpg: signing failed"
+export GPG_TTY=$(tty)
+echo 'export GPG_TTY=$(tty)' >> ~/.zshrc  # or ~/.bashrc
+
+# If using macOS and gpg hangs
+brew install pinentry-mac
+echo "pinentry-program $(which pinentry-mac)" >> ~/.gnupg/gpg-agent.conf
+gpgconf --kill gpg-agent
+
+# Test GPG signing
+echo "test" | gpg --clearsign
+```
+
+**Verify commits are signed**:
+
+```bash
+# Check if last commit is signed
+git log --show-signature -1
+
+# Sign an existing commit
+git commit --amend --no-edit -S
+```
+
+**For 1Password users**:
+
+If you store your GPG key in 1Password, configure the integration:
+
+```bash
+# Install 1Password CLI
+brew install --cask 1password-cli
+
+# Configure Git to use 1Password's GPG
+git config --global gpg.program op-gpg-sign
+```
 
 ### 6. Push and Create PR
 
@@ -204,12 +295,14 @@ See [Installation Guide](./installation.md)
 
 ### What Happens After PR
 
-1. **Automated Tests** - GitHub Actions runs all tests
+1. **Automated Tests** - GitHub Actions runs all tests (linting, integration, security)
 2. **Code Review** - Maintainer reviews changes
 3. **Documentation Check** - Ensure docs are updated
 4. **Merge to dev** - Changes merged to development branch
-5. **Testing Period** - Changes tested on test/docs branch
-6. **Merge to main** - Stable changes promoted to main
+5. **Promotion to nightly** - After testing, changes promoted to nightly branch
+6. **Auto-promotion to stable** - When all CI/CD checks pass on nightly, GitHub Actions automatically creates PR to stable branch
+7. **Final Review** - Manual review of stable promotion PR
+8. **Deploy** - Merged to stable and documentation deployed
 
 ### Review Criteria
 

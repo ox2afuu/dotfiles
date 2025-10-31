@@ -1,0 +1,40 @@
+# CodeQL configuration for security scanning
+# Documentation: https://codeql.github.com/docs/
+
+name: "CodeQL Config for Dotfiles"
+
+# Disable default queries and use only security queries
+disable-default-queries: false
+
+# Query packs to use
+queries:
+  - uses: security-and-quality
+  - uses: security-extended
+
+# Paths to analyze
+paths:
+  - tests/
+  - scripts/
+  - shell/
+  - .github/workflows/
+
+# Paths to ignore
+paths-ignore:
+  - docs/book/
+  - node_modules/
+  - '**/*.md'
+  - '**/*.txt'
+  - '.devcontainer/'
+
+# Query filters
+query-filters:
+  - exclude:
+      tags contain: experimental
+  - include:
+      tags contain:
+        - security
+        - correctness
+
+# Additional packs (optional)
+# packs:
+#   - codeql/python-queries

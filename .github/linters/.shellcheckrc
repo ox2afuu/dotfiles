@@ -1,0 +1,69 @@
+# shellcheck configuration
+# https://github.com/koalaman/shellcheck/wiki
+
+# Disable specific warnings that are often false positives or not applicable
+
+# SC1090: Can't follow non-constant source
+# Often we source files dynamically, this is expected
+disable=SC1090
+
+# SC1091: Not following sourced file
+# Related to SC1090, expected for dynamic sources
+disable=SC1091
+
+# SC2034: Variable appears unused
+# False positives for variables used in sourced files or exported
+disable=SC2034
+
+# SC2154: Variable referenced but not assigned
+# False positives for variables from sourced files
+disable=SC2154
+
+# SC2155: Declare and assign separately to avoid masking return values
+# Common pattern in shell scripts, acceptable trade-off for readability
+disable=SC2155
+
+# SC1083: This { is literal
+# False positives for git syntax like @{upstream}
+disable=SC1083
+
+# SC2250: Prefer braces around variables
+# Style preference - code works fine without braces in most cases
+disable=SC2250
+
+# SC2312: Consider invoking this command separately
+# Info-level suggestion for process substitution - acceptable pattern
+disable=SC2312
+
+# SC2206: Quote to prevent word splitting
+# False positives for zsh fpath array manipulation
+disable=SC2206
+
+# SC2128: Expanding an array without an index
+# False positives for zsh fpath usage
+disable=SC2128
+
+# SC2295: Expansions inside ${..} need to be quoted separately
+# Pattern matching syntax, acceptable usage
+disable=SC2295
+
+# SC2249: Consider adding a default *) case
+# Info-level suggestion, not always necessary
+disable=SC2249
+
+# SC2310: This function is invoked in an 'if' condition
+# Info-level suggestion about set -e behavior
+disable=SC2310
+
+# SC2029: Note that, unescaped, this expands on the client side
+# Sometimes we want client-side expansion
+# disable=SC2029
+
+# Default shell to check
+shell=bash
+
+# Minimum severity level: error, warning, info, style
+severity=warning
+
+# Enable all optional checks
+enable=all

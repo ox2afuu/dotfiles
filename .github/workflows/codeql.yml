@@ -1,0 +1,48 @@
+name: CodeQL Security Scanning
+
+on:
+  push:
+    branches: [stable, nightly, dev]
+  pull_request:
+    branches: [stable, nightly]
+  schedule:
+    # Run weekly on stable branch (Sundays at 00:00 UTC)
+    - cron: '0 0 * * 0'
+
+permissions:
+  security-events: write
+  contents: read
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # CodeQL supports: cpp, csharp, go, java, javascript, python, ruby, swift
+        # Shell scripts are analyzed as part of other languages
+        language: [python]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+          config-file: ./.github/linters/codeql-config.yml
+
+      # Autobuild attempts to build any compiled languages
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+          upload: true
